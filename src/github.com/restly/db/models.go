@@ -356,6 +356,17 @@ func UserByEmail(email string) (user *User, err error){
 	return user, err
 }
 
+func RestaurantById(id string) (*Restaurant, error){
+	session := m.session()
+	defer session.Close()
+	
+	r := &Restaurant{}
+	c := session.DB(db).C(r.name())
+	err := c.Find(bson.M{"_id": id}).One(r)
+	
+	return r, err
+}
+
 func RestaurantByKey(key string) (*Restaurant, error){
 	session := m.session()
 	defer session.Close()
@@ -365,7 +376,51 @@ func RestaurantByKey(key string) (*Restaurant, error){
 	err := c.Find(bson.M{"key": key}).One(r)
 	
 	return r, err
+}
 
+func ItemById(restaurantKey string, id bson.ObjectId) (*Item, error){
+	session := m.session()
+	defer session.Close()
+	
+	i := &Item{}
+	c := session.DB(restaurantKey).C(i.name())
+	err := c.FindId(id).One(i)
+	
+	return i, err
+}
+
+func CategoryById(restaurantKey string, id bson.ObjectId)(*Category, error){
+	session := m.session()
+	defer session.Close()
+	
+	ctg := &Category{}
+	c := session.DB(restaurantKey).C(ctg.name())
+	err := c.FindId(id).One(ctg)
+	
+	return ctg, err
+}
+
+func MenuByName(restaurantKey string, name string)(*Menu, error){
+	session := m.session()
+	defer session.Close()
+	
+	menu := &Menu{}
+	c := session.DB(restaurantKey).C(menu.name())
+	err := c.Find(bson.M{"n" : name}).One(menu)
+	
+	return menu, err
+}
+
+func Menus(restaurantKey string)(*[]Menu, error){
+	session := m.session()
+	defer session.Close()
+	
+	var menus []Menu
+	menu := Menu{}
+	c := session.DB(restaurantKey).C(menu.name())
+	err := c.Find(nil).All(&menus)
+	
+	return &menus, err
 }
 
 

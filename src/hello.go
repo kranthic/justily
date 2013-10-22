@@ -57,6 +57,16 @@ func createRestaurant(){
     
 }
 
+func createItem(restaurantKey string, name string, desc string, skus *[]db.Sku){
+	item := db.Item{}
+	item.Name = name
+	item.Desc = desc
+	item.RestaurantKey = restaurantKey
+	item.Skus = *skus
+	
+	fmt.Println("Item created", item.Create() == nil)
+}
+
 func main() {
 //	u := db.User{}
 //	u.Email = "kranthi.chalasani@gmail.com"
@@ -81,8 +91,14 @@ func main() {
 
 //	usr.Email= "kranthi.chalasani@gmail.com"
 //	fmt.Println(usr.Update())
-	createUser()
-	createRestaurant()
-
+//	createUser()
+//	createRestaurant()
+	restaurant, err := db.RestaurantByKey("ad65d8bee534a388fa9a077d91027100")
+	if err != nil{
+		panic(err)
+	}
+	sku1 := db.Sku{}
+	sku1.Price = 8.99
+	createItem(restaurant.Key, "Chicken Biryani", "Authentic Hyderabadi Biryani", &[]db.Sku{sku1})
 }
 
