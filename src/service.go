@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/restly/db"	
-	"github.com/restly/service/consts"
-	"github.com/restly/service/handlers"
-	"github.com/restly/service/helpers"
+	"github.com/restly/service"
 	"encoding/json"
 	"log"
 )
@@ -37,9 +35,8 @@ func hello2(w http.ResponseWriter, r *http.Request){
 
 func main() {
 
-	http.HandleFunc(consts.MY_RESTAURANT_PATH, helpers.ErrorHandler(helpers.GetOnly(handlers.Get)))
-	http.HandleFunc("/user/", user)
-	http.HandleFunc("/hello/", hello2)
+	restaurantHandler := service.RestaurantHandler{}
+	restaurantHandler.RegisterHandlerFuncs()
 	http.HandleFunc("/", hello)
 	log.Println(http.ListenAndServe(":8080", nil))
 

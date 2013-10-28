@@ -6,8 +6,9 @@ import (
 	"crypto/sha256"
 	"io"
 	"os"
+	"github.com/restly/service"
 	"labix.org/v2/mgo/bson"
-//	"encoding/json"
+	"encoding/json"
 )
 
 
@@ -97,8 +98,11 @@ func main() {
 	if err != nil{
 		panic(err)
 	}
-	sku1 := db.Sku{}
-	sku1.Price = 8.99
-	createItem(restaurant.Key, "Chicken Biryani", "Authentic Hyderabadi Biryani", &[]db.Sku{sku1})
+//	sku1 := db.Sku{}
+//	sku1.Price = 8.99
+//	createItem(restaurant.Key, "Chicken Biryani", "Authentic Hyderabadi Biryani", &[]db.Sku{sku1})
+	r := service.Response{Status: 200, Data: *restaurant}
+	j,_ := json.Marshal(r)
+	fmt.Println(string(j))
 }
 
