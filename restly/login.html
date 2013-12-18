@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justily Login</title>
+	<!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+    {{if not .IsIdentified}}
+        <div id="signinButton">
+            <span class="g-signin"
+                    data-scope="openid profile email"
+                    data-clientid="551013514703.apps.googleusercontent.com"
+                    data-redirecturi="http://localhost:8080"
+                    data-accesstype="offline"
+                    data-cookiepolicy="single_host_origin"
+                    data-callback="signInCallback">
+            </span>
+        </div>
+        <div id="result"></div>
+    {{else}}
+        <span class="label label-success">{{.Name}}</span>
+    {{end}}
+    </div>
+    {{if not .IsIdentified}}
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="/static/js/jquery.cookie.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+          var po = document.createElement('script');
+          po.type = 'text/javascript';
+          po.async = true;
+          po.src = 'https://plus.google.com/js/client:plusone.js?onload=start';
+          var s = document.getElementsByTagName('script')[0];
+          s.parentNode.insertBefore(po, s);
+        })();
+          
+        function signInCallback(auth){
+            if(auth['code']){
+                window.location = "/login?provider=google&okey=" + auth['code'] + "&sid=" + $.cookie("sid");
+            } else if(auth['error']){
+                $("#loginError").wrapInner('<span class="label label-danger">Something Happened with your login!!! ' + auth['error'] + '</div>');
+            }
+        }
+      </script>
+    {{end}}
+</body>
+</html>
