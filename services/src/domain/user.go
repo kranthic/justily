@@ -21,10 +21,13 @@ type User struct{
 
 const collection = "user"
 
-func (user *User) save() error{
+func (user *User) Save() error{
 	s := env.NewMongoSession()
 	defer s.Close()
 	
+	if user.Id == ""{
+		user.Id = bson.NewObjectId()
+	}
 	c := s.DB(dbName()).C(collection)
 	c.EnsureIndex(mgo.Index{Key: []string{"oap", "uid"},Unique: true})
 	return c.Insert(&user)

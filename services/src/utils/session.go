@@ -1,9 +1,10 @@
-package main 
+package utils 
 
 import (
 	"domain"
 	"net/http"
 //	"fmt"
+	"labix.org/v2/mgo/bson"
 	"log"
 )
 
@@ -20,6 +21,11 @@ func (rs *RequestSession) getSession(){
 	}
 	
 	rs.session = session
+}
+
+func (rs *RequestSession) UpdateUserId(userId string) error{
+	rs.session.UserId = bson.ObjectIdHex(userId)
+	return rs.session.Save()
 }
 
 func (rs *RequestSession) IsValid() bool{
