@@ -1,10 +1,10 @@
-package env
+package config 
 
 import (
 	"os"
 	"io/ioutil"
 	"encoding/json"
-	"labix.org/v2/mgo"
+	"db"
 //	"fmt"
 )
 
@@ -24,7 +24,6 @@ type mongo struct{
 }
 
 var Config *AppConfig
-var session *mgo.Session
 var inited = false
 
 func Init(fileName string, environment string){
@@ -49,20 +48,6 @@ func Init(fileName string, environment string){
 		default:
 			Config = &env.Dev
 	}
-	
-	initMongo()
+	db.InitMongo(Config.Mongo.Url, Config.Mongo.Db)
 	inited = true
-}
-
-func initMongo(){
-	s, err := mgo.Dial(Config.Mongo.Url)
-	if err != nil{
-		panic(err)
-	}
-	
-	session = s
-}
-
-func NewMongoSession() *mgo.Session{
-	return session.New()
 }

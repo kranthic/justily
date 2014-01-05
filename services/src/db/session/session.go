@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"env"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
+	"db"
 )
 
 type Session struct{
@@ -18,11 +18,11 @@ type Session struct{
 const collName = "session"
 
 func getCollection(s *mgo.Session) *mgo.Collection{
-	return s.DB(env.Config.Mongo.Db).C(collName)
+	return s.DB(db.DbName()).C(collName)
 }
 
 func (session *Session) Save() error{
-	s := env.NewMongoSession()
+	s := db.NewMongoSession()
 	defer s.Close()
 
 	session.Id = bson.NewObjectId()
@@ -31,7 +31,7 @@ func (session *Session) Save() error{
 }
 
 func GetSessionById(sid string) (*Session, error){
-	s := env.NewMongoSession()
+	s := db.NewMongoSession()
 	defer s.Close()
 	
 	id := bson.ObjectIdHex(sid)

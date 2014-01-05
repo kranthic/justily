@@ -1,0 +1,12 @@
+{
+    "dev" : 
+    {
+        "port" : "8080",
+        "staticDir": "bootstrap",
+    	"mongo" : 
+    	{
+    		"url" : "localhost",
+            "db" : "justily_dev"
+		}
+    }
+}

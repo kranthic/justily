@@ -3,10 +3,10 @@ package user
 import (
 	"errors"
 	"fmt"
-	"domain"
+	"db/user"
 	"time"
-	"utils"
-//	"net/http"
+	"service/session"
+	"net/http"
 )
 
 type OAuth interface{
@@ -21,7 +21,7 @@ type OAuth interface{
 
 
 type UserService struct{
-	Rs *utils.RequestSession
+	Rs *session.RequestSession
 }
 
 func (us *UserService) authorizeToken(token, provider string) (*OAuth, error){
@@ -73,4 +73,11 @@ func (us *UserService) saveUserIfNew(oauth OAuth) (string, error){
 
 func (us *UserService) updateRequestSession(userId string) error{
 	return us.Rs.UpdateUserId(userId)
+}
+
+func HelloUser(w *http.ResponseWriter, r *http.Request, rs *session.RequestSession){
+	fmt.Println("Running User Handler")
+	cookie := &http.Cookie{Name:"blah", Value: "blah"}
+	http.SetCookie(*w, cookie)
+	fmt.Fprintf(*w, "Hello Kranthi!!!")
 }

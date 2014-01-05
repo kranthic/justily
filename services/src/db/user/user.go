@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"env"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
+	"db"
 )
 
 type User struct{
@@ -22,38 +22,34 @@ type User struct{
 const collection = "user"
 
 func (user *User) Save() error{
-	s := env.NewMongoSession()
+	s := db.NewMongoSession()
 	defer s.Close()
 	
 	if user.Id == ""{
 		user.Id = bson.NewObjectId()
 	}
-	c := s.DB(dbName()).C(collection)
+	c := s.DB(db.DbName()).C(collection)
 	c.EnsureIndex(mgo.Index{Key: []string{"oap", "uid"},Unique: true})
 	return c.Insert(&user)
 }
 
-func dbName() string{
-	return env.Config.Mongo.Db
-}
-
 func GetUserById(id string) (*User, error){
-	s := env.NewMongoSession()
+	s := db.NewMongoSession()
 	defer s.Close()
 	
 	u := &User{}
-	c := s.DB(dbName()).C(collection)
+	c := s.DB(db.DbName()).C(collection)
 	err := c.Find(bson.M{"_id": id}).One(u)
 	
 	return u, err
 }
 
 func GetUserByOAuthId(provider, id string) (*User, error){
-	s := env.NewMongoSession()
+	s := db.NewMongoSession()
 	defer s.Close()
 	
 	u := &User{}
-	c := s.DB(dbName()).C(collection)
+	c := s.DB(db.DbName()).C(collection)
 	err := c.Find(bson.M{"oap": provider, "uid": id}).One(u)
 	
 	return u, err
