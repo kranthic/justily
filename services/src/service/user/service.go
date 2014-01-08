@@ -3,10 +3,12 @@ package user
 import (
 	"errors"
 	"fmt"
-	"db/user"
+	dbu "db/user"
 	"time"
 	"service/session"
+	"service/handlers"
 	"net/http"
+	"encoding/json"
 )
 
 type OAuth interface{
@@ -48,9 +50,9 @@ func (us *UserService) authorizeToken(token, provider string) (*OAuth, error){
 }
 
 func (us *UserService) saveUserIfNew(oauth OAuth) (string, error){
-	user, err := domain.GetUserByOAuthId(oauth.ProviderName(), oauth.UserId())
+	user, err := dbu.GetUserByOAuthId(oauth.ProviderName(), oauth.UserId())
 	if err != nil{
-		user = &domain.User{}
+		user = &dbu.User{}
 		user.Email = oauth.UserEmail()
 		user.FirstName = oauth.FirstName()
 		user.LastName = oauth.LastName()
@@ -75,9 +77,15 @@ func (us *UserService) updateRequestSession(userId string) error{
 	return us.Rs.UpdateUserId(userId)
 }
 
-func HelloUser(w *http.ResponseWriter, r *http.Request, rs *session.RequestSession){
+func HelloUser(r handlers.HttpRequest) handlers.JsonResponder{
 	fmt.Println("Running User Handler")
 	cookie := &http.Cookie{Name:"blah", Value: "blah"}
-	http.SetCookie(*w, cookie)
-	fmt.Fprintf(*w, "Hello Kranthi!!!")
+	var responder handlers.JsonResponder
+	responder.AddCookie(*cookie)
+	u := &dbu.User{FirstName: "Kranthi"}
+	bytes, _ := json.Marshal(u)
+	responder.Write(string(bytes))
+	responder.SetStatus(http.StatusOK)
+	
+	return responder	
 }

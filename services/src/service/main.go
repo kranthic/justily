@@ -1,13 +1,10 @@
-package service 
+package main 
 
 import (
-//	"net/http"
-//	"log"
-//	"fmt"
-//	"config"
-//	"os"
-//	"service/user"
-//	"service/session"
+	"net/http"
+	"log"
+	"service/handlers"
+	"service/user"
 )
 
 func main() {
@@ -18,7 +15,7 @@ func main() {
 //	configJson := fmt.Sprintf("%s/config.json", currentDir)
 //	config.Init(configJson, "dev")
 //	
-//	http.HandleFunc("/user", requestWrapper(user.HelloUser))
-//	log.Print(http.ListenAndServe(":8080", nil))
+	http.Handle("/user", handlers.JsonHandler(user.HelloUser))
+	log.Print(http.ListenAndServe(":8080", nil))
 }
 
