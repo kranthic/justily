@@ -3,8 +3,40 @@ package handlers
 import (
 	"net/http"
 	"fmt"
-	"service/session"
+	dbsn "db/session"
+	"time"
 )
+
+type HttpRequest struct{
+	Session *dbsn.Session
+	Request *http.Request
+}
+
+
+const sCkName = "sid"
+func getSession(r *http.Request) *dbsn.Session{
+	ck, err := r.Cookie(sCkName)
+	if err != nil{
+		return createNewSession()
+	}
+	
+	if s, err := dbsn.GetSessionById(ck.Value); err != nil{
+		return createNewSession()
+	} else{
+		return s
+	}
+	
+}
+
+func createNewSession() *dbsn.Session{
+	s := &dbsn.Session{}
+	s.LastAccessedTime = time.Now()
+	if err := s.Save(); err != nil{
+		panic(err)
+	}
+	
+	return s
+}
 
 type httpResponder interface{
 	AddCookie(cookie http.Cookie)
@@ -19,32 +51,33 @@ type stringResponder interface{
 	Output() string
 }
 
-type JsonHandler func(req HttpRequest) JsonResponder
+type JsonHandler func(req *HttpRequest) *JsonResponder
 
 func (fn JsonHandler) ServeHTTP(w http.ResponseWriter, req *http.Request){
-	responder := fn(HttpRequest{Request: req})
-	setResponderData(w, &responder)
+	session := getSession(req)
+
+	responder := fn(&HttpRequest{Request: req, Session: session})
+	if responder.GetStatus() == http.StatusOK{
+		setResponderData(w, responder, session)
+	} else {
+		w.WriteHeader(responder.GetStatus())
+	}
 	
 	w.Header().Add("Content-Type", "application/json;charset=UTF-8")
 	fmt.Fprintf(w, responder.Output())
 }
 
-func setResponderData(w http.ResponseWriter, responder httpResponder){
+func setResponderData(w http.ResponseWriter, responder httpResponder, session *dbsn.Session){
 	if responder.GetCookies() != nil{
 		for _, ck := range *(responder.GetCookies()){
 			http.SetCookie(w, &ck)
 		}
+		http.SetCookie(w, &http.Cookie{Name: "sid", Value: session.Id.Hex()})
 	}
 	
-	if responder.GetStatus() != http.StatusOK{
-		w.WriteHeader(responder.GetStatus())
-	}
 }
 
-type HttpRequest struct{
-	Session *session.RequestSession
-	Request *http.Request
-}
+
 
 type JsonResponder struct{
 	status int

@@ -30,6 +30,14 @@ func (session *Session) Save() error{
 	return coll.Insert(session)
 }
 
+func (session *Session) UpdateUserId(userId string) error{
+	s := db.NewMongoSession()
+	defer s.Close()
+	
+	coll := getCollection(s)
+	return coll.UpdateId(session.Id, session) 
+}
+
 func GetSessionById(sid string) (*Session, error){
 	s := db.NewMongoSession()
 	defer s.Close()

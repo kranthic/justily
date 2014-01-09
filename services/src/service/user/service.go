@@ -5,7 +5,6 @@ import (
 	"fmt"
 	dbu "db/user"
 	"time"
-	"service/session"
 	"service/handlers"
 	"net/http"
 	"encoding/json"
@@ -22,17 +21,13 @@ type OAuth interface{
 } 
 
 
-type UserService struct{
-	Rs *session.RequestSession
-}
-
-func (us *UserService) authorizeToken(token, provider string) (*OAuth, error){
+func authorizeToken(token, provider string) (OAuth, error){
 	var oauth OAuth
 	var err error
 
 	switch provider{
 	case "google":
-		oauth := &GoogleOAuth{}
+		oauth = &GoogleOAuth{}
 		err = oauth.GetUserDetails(token)
 	default :
 		err = errors.New(fmt.Sprintf("Unrecognized provider %s", provider))
@@ -46,10 +41,11 @@ func (us *UserService) authorizeToken(token, provider string) (*OAuth, error){
 		return nil, errors.New(fmt.Sprintf("Unable to retrieve details based on token %s", token))
 	}
 	
-	return &oauth, nil
+	return oauth, nil
 }
 
-func (us *UserService) saveUserIfNew(oauth OAuth) (string, error){
+func saveUserIfNew(oauth OAuth) (*dbu.User, error){
+
 	user, err := dbu.GetUserByOAuthId(oauth.ProviderName(), oauth.UserId())
 	if err != nil{
 		user = &dbu.User{}
@@ -66,26 +62,48 @@ func (us *UserService) saveUserIfNew(oauth OAuth) (string, error){
 		err = user.Save()
 	}
 	
-	if err != nil{
-		return "", err
+	return user, err 
+}
+
+func errorJsonResponse(err string) *handlers.JsonResponder{
+	responder := &handlers.JsonResponder{}
+	responder.SetStatus(http.StatusBadRequest)
+	
+	type output struct{
+		Err string
+	}
+	bytes, _ := json.Marshal(&output{Err: err})
+	responder.Write(string(bytes))
+	return responder 
+}
+
+func LoginUser(r *handlers.HttpRequest) *handlers.JsonResponder{
+	authToken := r.Request.FormValue("at")
+	provider := r.Request.FormValue("p")
+	if authToken == "" || provider == ""{
+		return errorJsonResponse("authToken and provider parameters are required")
 	}
 	
-	return user.Id.String(), nil
-}
-
-func (us *UserService) updateRequestSession(userId string) error{
-	return us.Rs.UpdateUserId(userId)
-}
-
-func HelloUser(r handlers.HttpRequest) handlers.JsonResponder{
-	fmt.Println("Running User Handler")
-	cookie := &http.Cookie{Name:"blah", Value: "blah"}
-	var responder handlers.JsonResponder
-	responder.AddCookie(*cookie)
-	u := &dbu.User{FirstName: "Kranthi"}
-	bytes, _ := json.Marshal(u)
-	responder.Write(string(bytes))
-	responder.SetStatus(http.StatusOK)
+	oauth, err := authorizeToken(authToken, provider)
+	if err != nil{
+		return errorJsonResponse(err.Error())
+	}
 	
-	return responder	
+	user, err := saveUserIfNew(oauth)
+	if err != nil{
+		return errorJsonResponse(err.Error())
+	}
+	
+	bytes, err := json.Marshal(user)
+	if err != nil{
+		return errorJsonResponse(err.Error())
+	}
+	
+	cookie := &http.Cookie{Name: "uid", Value: user.Id.Hex()}
+	responder := &handlers.JsonResponder{}
+	responder.AddCookie(*cookie)
+	responder.SetStatus(http.StatusOK)
+	responder.Write(string(bytes))
+	
+	return responder
 }
