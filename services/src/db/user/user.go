@@ -25,12 +25,14 @@ func (user *User) Save() error{
 	s := db.NewMongoSession()
 	defer s.Close()
 	
+	var ins bool
 	if user.Id == ""{
 		user.Id = bson.NewObjectId()
+		ins = true
 	}
 	c := s.DB(db.DbName()).C(collection)
 	c.EnsureIndex(mgo.Index{Key: []string{"oap", "uid"},Unique: true})
-	return c.Insert(&user)
+	if ins{ return c.Insert(&user) }else {return c.UpdateId(user.Id, &user)}
 }
 
 func GetUserById(id string) (*User, error){

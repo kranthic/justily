@@ -41,11 +41,14 @@ func authorizeToken(token, provider string) (OAuth, error){
 		return nil, errors.New(fmt.Sprintf("Unable to retrieve details based on token %s", token))
 	}
 	
+	fmt.Println(oauth)
+	
 	return oauth, nil
 }
 
 func saveUserIfNew(oauth OAuth) (*dbu.User, error){
 
+	fmt.Println(oauth)
 	user, err := dbu.GetUserByOAuthId(oauth.ProviderName(), oauth.UserId())
 	if err != nil{
 		user = &dbu.User{}
@@ -65,38 +68,31 @@ func saveUserIfNew(oauth OAuth) (*dbu.User, error){
 	return user, err 
 }
 
-func errorJsonResponse(err string) *handlers.JsonResponder{
-	responder := &handlers.JsonResponder{}
-	responder.SetStatus(http.StatusBadRequest)
-	
-	type output struct{
-		Err string
-	}
-	bytes, _ := json.Marshal(&output{Err: err})
-	responder.Write(string(bytes))
-	return responder 
-}
-
 func LoginUser(r *handlers.HttpRequest) *handlers.JsonResponder{
 	authToken := r.Request.FormValue("at")
 	provider := r.Request.FormValue("p")
 	if authToken == "" || provider == ""{
-		return errorJsonResponse("authToken and provider parameters are required")
+		return handlers.ErrorJsonResponder("authToken and provider parameters are required")
+	}
+	
+	errorResponder := func(err error) *handlers.JsonResponder{
+		return handlers.ErrorJsonResponder(err.Error())
 	}
 	
 	oauth, err := authorizeToken(authToken, provider)
 	if err != nil{
-		return errorJsonResponse(err.Error())
+		return errorResponder(err)
 	}
 	
+	fmt.Println(oauth)
 	user, err := saveUserIfNew(oauth)
 	if err != nil{
-		return errorJsonResponse(err.Error())
+		return errorResponder(err)
 	}
 	
 	bytes, err := json.Marshal(user)
 	if err != nil{
-		return errorJsonResponse(err.Error())
+		return errorResponder(err)
 	}
 	
 	cookie := &http.Cookie{Name: "uid", Value: user.Id.Hex()}

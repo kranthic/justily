@@ -5,6 +5,7 @@ import (
 	"fmt"
 	dbsn "db/session"
 	"time"
+	"encoding/json"
 )
 
 type HttpRequest struct{
@@ -77,7 +78,17 @@ func setResponderData(w http.ResponseWriter, responder httpResponder, session *d
 	
 }
 
-
+func ErrorJsonResponder(err string) *JsonResponder{
+	responder := &JsonResponder{}
+	responder.SetStatus(http.StatusBadRequest)
+	
+	type output struct{
+		Err string
+	}
+	bytes, _ := json.Marshal(&output{Err: err})
+	responder.Write(string(bytes))
+	return responder
+}
 
 type JsonResponder struct{
 	status int

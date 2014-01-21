@@ -9,23 +9,18 @@
 </head>
 <body>
 	<div class="container">
-    {{if not .IsIdentified}}
         <div id="signinButton">
             <span class="g-signin"
                     data-scope="openid profile email"
                     data-clientid="551013514703.apps.googleusercontent.com"
-                    data-redirecturi="http://localhost:8080"
+                    data-redirecturi="http://127.0.0.1:61800"
                     data-accesstype="offline"
                     data-cookiepolicy="single_host_origin"
                     data-callback="signInCallback">
             </span>
         </div>
         <div id="result"></div>
-    {{else}}
-        <span class="label label-success">{{.Name}}</span>
-    {{end}}
     </div>
-    {{if not .IsIdentified}}
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -44,12 +39,11 @@
           
         function signInCallback(auth){
             if(auth['code']){
-                window.location = "/login?provider=google&okey=" + auth['code'] + "&sid=" + $.cookie("sid");
+                alert(auth['code'])
             } else if(auth['error']){
                 $("#loginError").wrapInner('<span class="label label-danger">Something Happened with your login!!! ' + auth['error'] + '</div>');
             }
         }
       </script>
-    {{end}}
 </body>
 </html>
