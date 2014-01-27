@@ -44,6 +44,16 @@ func (this *restaurant) AddBranch(b *branch){
 	this.Branches = append(this.Branches, *b)
 }
 
+func GetRestaurantByKey(key string) (*restaurant, error){
+	s := db.NewMongoSession()
+	defer s.Close()
+	
+	c := s.DB(db.DbName()).C(collection)
+	var r restaurant
+	err := c.Find(bson.M{"key": key}).One(&r)
+	return &r, err
+}
+
 func GetRestaurantById(id string) (*restaurant, error){
 	s := db.NewMongoSession()
 	defer s.Close()
