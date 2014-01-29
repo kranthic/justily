@@ -9,11 +9,11 @@ import (
 //	"fmt"
 )
 
-type restaurant struct{
+type Restaurant struct{
 	Id bson.ObjectId `bson:"_id,omitempty" json:"id"`
 	Name string `bson:"n" json:"name"`
 	About string `bson:"d,omitempty" json:"about"`
-	Branches []branch `bson:"b" json:"branches"`
+	Branches []Branch `bson:"b" json:"branches"`
 	AdminIds []bson.ObjectId `bson:"a" json:"-"`
 	Admins []dbu.User	`bson:"-" json:"admins"`
 	Key string `bson:"key" json:"-"` //Need a unique key that can be used to retrieve this restaurant. Name will not be unique
@@ -21,7 +21,7 @@ type restaurant struct{
 	UpdateTime time.Time `bson:"ut" json:"updated"`
 }
 
-type branch struct{
+type Branch struct{
 	Name string `bson:"n" json:"name"`
 	Address string `bson:"a" json:"address"`
 	City string `bson:"c" json:"city"`
@@ -32,39 +32,39 @@ type branch struct{
 
 const collection = "restaurant"
 
-func NewRestaurant() *restaurant{
-	return &restaurant{}
+func NewRestaurant() *Restaurant{
+	return &Restaurant{}
 }
 
-func (this *restaurant) NewBranch() *branch{
-	return &branch{}
+func (this *Restaurant) NewBranch() *Branch{
+	return &Branch{}
 }
 
-func (this *restaurant) AddBranch(b *branch){
+func (this *Restaurant) AddBranch(b *Branch){
 	this.Branches = append(this.Branches, *b)
 }
 
-func GetRestaurantByKey(key string) (*restaurant, error){
+func GetRestaurantByKey(key string) (*Restaurant, error){
 	s := db.NewMongoSession()
 	defer s.Close()
 	
 	c := s.DB(db.DbName()).C(collection)
-	var r restaurant
+	var r Restaurant
 	err := c.Find(bson.M{"key": key}).One(&r)
 	return &r, err
 }
 
-func GetRestaurantById(id string) (*restaurant, error){
+func GetRestaurantById(id string) (*Restaurant, error){
 	s := db.NewMongoSession()
 	defer s.Close()
 	
 	c := s.DB(db.DbName()).C(collection)
-	var r restaurant
+	var r Restaurant
 	err := c.FindId(bson.ObjectIdHex(id)).One(&r)
 	return &r, err
 }
 
-func (this *restaurant) Save() error{
+func (this *Restaurant) Save() error{
 	s := db.NewMongoSession()
 	defer s.Close()
 	

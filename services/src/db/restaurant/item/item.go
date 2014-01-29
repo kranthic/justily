@@ -7,44 +7,44 @@ import (
 	"time"
 )
 
-type item struct{
+type Item struct{
 	Id bson.ObjectId `bson:"_id" json:"id"`
 	Name string `bson:"n" json:"name"`
 	Desc string `bson:"d" json:"desc"`
-	Skus []sku `bson:"s" json:"skus"`
+	Skus []Sku `bson:"s" json:"skus"`
 	CreateTime time.Time `bson:"ct" json:"created"`
 	UpdateTime time.Time `bson:"ut" json:"updated"`
 }
 
-type sku struct{
+type Sku struct{
 	Price float32 `bson:"p" json:"price"`
 }
 
 const coll = "item"
 
-func NewItem() *item{
-	return &item{}
+func NewItem() *Item{
+	return &Item{}
 }
 
-func GetByItemId(id string, restaurantKey string) (*item, error){
+func GetByItemId(id string, restaurantKey string) (*Item, error){
 	s := db.NewMongoSession()
 	defer s.Close()
 	
 	c := s.DB(restaurantKey).C(coll)
-	var i item 
+	var i Item 
 	err := c.FindId(bson.ObjectIdHex(id)).One(&i)
 	return &i, err
 }
 
-func (this *item) NewSku() *sku{
-	return &sku{}
+func (this *Item) NewSku() *Sku{
+	return &Sku{}
 }
 
-func (this *item) AddSku(s *sku){
+func (this *Item) AddSku(s *Sku){
 	this.Skus = append(this.Skus, *s)
 }
 
-func (this *item) Save(restaurantKey string) error{
+func (this *Item) Save(restaurantKey string) error{
 	s := db.NewMongoSession()
 	defer s.Close()
 	

@@ -111,7 +111,9 @@ func AddMenuCatItem(r *handlers.HttpRequest) *handlers.JsonResponder{
 	catItem := category.NewCatItem()
 	catItem.ItemId = item.Id
 	
-	for _, sku := range skus{
+	ci := *item
+	ci.Skus = make([]dbi.Sku, len(skus))
+	for idx, sku := range skus{
 		if skuInt, err := strconv.Atoi(sku); err != nil{
 			return handlers.ErrorJsonResponder(err.Error())
 		} else{
@@ -120,8 +122,10 @@ func AddMenuCatItem(r *handlers.HttpRequest) *handlers.JsonResponder{
 			}
 			
 			catItem.Sku = append(catItem.Sku, skuInt)		
+			ci.Skus[idx] = item.Skus[skuInt]  
 		}
 	}
+	catItem.Item = &ci
 	
 	category.AddItem(catItem)
 	menu.Categories[catIdx] = category
@@ -143,7 +147,7 @@ func isValidKey(key string) bool{
 	return true
 }
 
-func menuJsonResponder(menu interface{}) *handlers.JsonResponder{
+func menuJsonResponder(menu *dbm.Menu) *handlers.JsonResponder{
 	bytes, err := json.Marshal(menu)
 	if err != nil{
 		return handlers.ErrorJsonResponder(err.Error())

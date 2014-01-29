@@ -3,61 +3,63 @@ package menu
 import (
 	"db"
 	"time"
+	dbi "db/restaurant/item"
 	"labix.org/v2/mgo/bson"
 )
 
-type menu struct{
+type Menu struct{
 	Id bson.ObjectId `bson:"_id" json:"id"`
 	Name string `bson:"n" json:"name"`
-	Categories []category `bson:"c" json:"categories"`
+	Categories []Category `bson:"c" json:"categories"`
 	CreateTime time.Time `bson:"ct" json:"created"`
 	UpdateTime time.Time `bson:"ut" json:"updated"`
 }
 
-type category struct{
+type Category struct{
 	Name string `bson:"n" json:"name"`
-	Items []catItem `bson:"ci" json:"-"`
+	Items []CatItem `bson:"ci" json:"items"`
 }
 
-type catItem struct{
+type CatItem struct{
 	ItemId bson.ObjectId `bson:"id"`
-	Sku []int `bson:s`
+	Sku []int `bson:"s"`
+	Item *dbi.Item `bson:"-"`
 }
 
 const coll = "menu"
 
-func NewMenu() *menu{
-	return &menu{}
+func NewMenu() *Menu{
+	return &Menu{}
 }
 
-func (this *menu) NewCategory() *category{
-	return &category{}
+func (this *Menu) NewCategory() *Category{
+	return &Category{}
 }
 
-func (this *category) NewCatItem() *catItem{
-	return &catItem{}
+func (this *Category) NewCatItem() *CatItem{
+	return &CatItem{}
 }
 
-func (this *category) AddItem(ci *catItem){
+func (this *Category) AddItem(ci *CatItem){
 	this.Items = append(this.Items, *ci)
 }
 
-func (this *menu) AddCategory(c *category){
+func (this *Menu) AddCategory(c *Category){
 	this.Categories = append(this.Categories, *c)
 }
 
-func GetMenuById(id string, restaurantKey string) (*menu, error){
+func GetMenuById(id string, restaurantKey string) (*Menu, error){
 	s := db.NewMongoSession()
 	defer s.Close()
 	
-	var m menu
+	var m Menu
 	c := s.DB(restaurantKey).C(coll)
 	err := c.FindId(bson.ObjectIdHex(id)).One(&m)
 	
 	return &m, err
 }
 
-func (this *menu) Save(restaurantKey string) error{
+func (this *Menu) Save(restaurantKey string) error{
 	s := db.NewMongoSession()
 	defer s.Close()
 	
